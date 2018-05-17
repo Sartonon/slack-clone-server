@@ -8,7 +8,8 @@
     "prettier": "prettier --config ./.prettierrc.js --write './**/*.js'",
     "build-server": "babel -d ./build ./server",
     "clean": "rm -rf build && mkdir build",
-    "build": "npm run clean && npm run build-server"
+    "copy-env": "cp .env build/.env",
+    "build": "npm run clean && npm run build-server && npm run copy-env"
   },
   "keywords": [],
   "author": "",
