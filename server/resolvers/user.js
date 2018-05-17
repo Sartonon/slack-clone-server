@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import formatErrors from '../formatErrors';
 
 import { tryLogin } from '../auth';
@@ -15,7 +14,6 @@ export default {
     register: async (parent, args, { models }) => {
       try {
         const user = await models.User.create(args);
-
         return {
           ok: true,
           user,
