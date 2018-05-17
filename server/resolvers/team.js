@@ -65,7 +65,7 @@ export default {
       async (parent, args, { models, user }) => {
         try {
           // if channel can't be created, dont create Team.
-          const response = await models.sequalize.transaction(async () => {
+          const response = await models.sequelize.transaction(async () => {
             const team = await models.Team.create({ ...args, owner: user.id });
             await models.Channel.create({
               name: 'general',
