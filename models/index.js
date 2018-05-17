@@ -1,5 +1,8 @@
 import Sequelize from 'sequelize';
 
+require('dotenv').config();
+
+console.log(process.env.DB_USER, process.env.DB_PASS);
 const sequelize = new Sequelize('slack', process.env.DB_USER, process.env.DB_PASS, {
   dialect: 'postgres',
   operatorsAliases: Sequelize.Op,

@@ -1,3 +1,4 @@
+/* eslint-disable import/first */
 import express from 'express';
 import bodyParser from 'body-parser';
 import { graphqlExpress, graphiqlExpress } from 'apollo-server-express';
@@ -6,6 +7,8 @@ import path from 'path';
 import { fileLoader, mergeTypes, mergeResolvers } from 'merge-graphql-schemas';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
+
+require('dotenv').config();
 
 import models from './models';
 import { refreshTokens } from './auth';
