@@ -8,6 +8,9 @@ import path from 'path';
 import { fileLoader, mergeTypes, mergeResolvers } from 'merge-graphql-schemas';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
+import { createServer } from 'http';
+import { execute, subscribe } from 'graphql';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
 
 require('dotenv').config();
 
@@ -23,6 +26,7 @@ const resolvers = mergeResolvers(
   fileLoader(path.join(__dirname, './resolvers')),
 );
 
+// eslint-disable-next-line import/prefer-default-export
 export const schema = makeExecutableSchema({
   typeDefs,
   resolvers,
@@ -82,6 +86,21 @@ app.use(
 
 app.use('/graphiql', graphiqlExpress({ endpointURL: graphqlEndpoint }));
 
+const server = createServer(app);
+
 models.sequelize.sync().then(() => {
-  app.listen(PORT);
+  server.listen(PORT || 8080, () => {
+    // eslint-disable-next-line no-new
+    new SubscriptionServer(
+      {
+        execute,
+        subscribe,
+        schema,
+      },
+      {
+        server,
+        path: '/subscriptions',
+      },
+    );
+  });
 });

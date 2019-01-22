@@ -6,11 +6,36 @@ export default {
     allTeams: requiresAuth.createResolver(
       async (parent, args, { models, user }) => {
         return models.Team.findAll(
-          { where: { owner: user.id } },
+          {
+            where: { owner: user.id },
+          },
           { raw: true },
         );
       },
     ),
+    inviteTeams: requiresAuth.createResolver(
+      async (parent, args, { models, user }) => {
+        return models.sequelize.query(
+          'SELECT * FROM teams JOIN members ON id = team_id WHERE user_id = ?',
+          { replacements: [user.id], model: models.Team },
+        );
+      },
+    ),
+    // inviteTeams: requiresAuth.createResolver(
+    //   async (parent, args, { models, user }) => {
+    //     return models.Team.findAll(
+    //       {
+    //         include: [
+    //           {
+    //             model: models.User,
+    //             where: { id: user.id },
+    //           },
+    //         ],
+    //       },
+    //       { raw: true },
+    //     );
+    //   },
+    // ),
   },
   Mutation: {
     addTeamMember: requiresAuth.createResolver(
@@ -82,7 +107,7 @@ export default {
           console.log(err);
           return {
             ok: false,
-            error: formatErrors(err),
+            errors: formatErrors(err, models),
           };
         }
       },
