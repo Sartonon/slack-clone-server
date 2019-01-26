@@ -2,47 +2,12 @@ import formatErrors from '../formatErrors';
 import requiresAuth from '../permissions';
 
 export default {
-  Query: {
-    allTeams: requiresAuth.createResolver(
-      async (parent, args, { models, user }) => {
-        return models.Team.findAll(
-          {
-            where: { owner: user.id },
-          },
-          { raw: true },
-        );
-      },
-    ),
-    inviteTeams: requiresAuth.createResolver(
-      async (parent, args, { models, user }) => {
-        return models.sequelize.query(
-          'SELECT * FROM teams JOIN members ON id = team_id WHERE user_id = ?',
-          { replacements: [user.id], model: models.Team },
-        );
-      },
-    ),
-    // inviteTeams: requiresAuth.createResolver(
-    //   async (parent, args, { models, user }) => {
-    //     return models.Team.findAll(
-    //       {
-    //         include: [
-    //           {
-    //             model: models.User,
-    //             where: { id: user.id },
-    //           },
-    //         ],
-    //       },
-    //       { raw: true },
-    //     );
-    //   },
-    // ),
-  },
   Mutation: {
     addTeamMember: requiresAuth.createResolver(
       async (parent, { email, teamId }, { models, user }) => {
         try {
-          const teamPromise = models.Team.findOne(
-            { where: { id: teamId } },
+          const memberPromise = models.Member.findOne(
+            { where: { teamId, userId: user.id } },
             { raw: true },
           );
 
@@ -50,11 +15,11 @@ export default {
             { where: { email } },
             { raw: true },
           );
-          const [team, userToAdd] = await Promise.all([
-            teamPromise,
+          const [member, userToAdd] = await Promise.all([
+            memberPromise,
             userToAddPromise,
           ]);
-          if (team.owner !== user.id) {
+          if (!member.admin) {
             return {
               ok: false,
               errors: [
@@ -91,11 +56,16 @@ export default {
         try {
           // if channel can't be created, dont create Team.
           const response = await models.sequelize.transaction(async () => {
-            const team = await models.Team.create({ ...args, owner: user.id });
+            const team = await models.Team.create({ ...args });
             await models.Channel.create({
               name: 'general',
               public: true,
               teamId: team.id,
+            });
+            await models.Member.create({
+              teamId: team.id,
+              userId: user.id,
+              admin: true,
             });
             return team;
           });
